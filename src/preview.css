@@ -1,0 +1,2 @@
+.school-wordmark{display:flex;flex-direction:column;gap:3px;color:var(--deep);line-height:1.1}.school-wordmark strong{font-family:var(--display);font-size:19px;font-weight:650}.school-wordmark small{color:var(--muted);font-size:10px}.footer-identity>strong{display:block;color:var(--deep);font:600 20px/1.2 var(--display)}.demo-privacy-note{max-width:760px;margin:28px 0 0;padding:14px 16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;line-height:1.65}
+@media(max-width:520px){.school-wordmark strong{font-size:16px}.school-wordmark small{font-size:9px}}

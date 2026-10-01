@@ -1,10 +1,9 @@
 import './styles.css';
 import './demo.css';
+import './preview.css';
 import DOMPurify from 'dompurify';
 import { DEMO_ACCESS_PATH, DEMO_INFORMATION_PATH, getPageMetadata, isSensitiveDestination, normalizeCmsHeadings, sanitizeCmsHtml } from './seo.js';
 
-const API = 'https://tps.schoolaxis.in/api/website';
-const MEDIA = 'https://tps.schoolaxis.in/uploads/media/';
 const appRoot = document.querySelector('#app-content');
 const header = document.querySelector('.site-header');
 const navPanel = document.querySelector('#navigation-panel');
@@ -16,40 +15,11 @@ const feedRoutes = { menu: 'menu/header', allMenu: 'menu', settings: 'settings',
 
 const titleCase = (value = '') => value.trim().toLowerCase().replace(/(^|\s)\S/g, (letter) => letter.toUpperCase());
 const cleanText = (value = '') => value == null ? '' : new DOMParser().parseFromString(String(value), 'text/html').body.textContent.replace(/\s+/g, ' ').trim();
-const normalizeMediaUrl = (value) => {
-  if (!value) return '';
-  const raw = String(value).trim();
-  if (/^data:/i.test(raw)) return raw;
-  const source = raw.startsWith('//') ? `https:${raw}` : raw;
-  try {
-    const url = new URL(source);
-    const host = url.hostname.toLowerCase();
-    const pathname = url.pathname || '/';
-    if (host === 'tps.schoolaxis.info' || host === 'schoolaxis.info' || host === 'avp.schoolaxis.in' || host === 'sst.nilesh.cloudcampus.tech' || host === 'avp.santosh.cloudcampus.tech' || host.endsWith('cloudcampus.tech')) {
-      const normalizedPath = pathname.replace(/^\/+/, '');
-      if (normalizedPath.startsWith('uploads/media/')) return `https://tps.schoolaxis.in/${normalizedPath}`;
-      if (normalizedPath.startsWith('website/')) return `https://schoolaxis.in/${normalizedPath}`;
-      return `https://tps.schoolaxis.in/uploads/media/${normalizedPath.split('/').pop() || ''}`;
-    }
-    if (host === 'schoolaxis.in') {
-      if (pathname.startsWith('/uploads/media/')) return `https://tps.schoolaxis.in${pathname}`;
-      if (pathname.startsWith('/website/')) return `https://schoolaxis.in${pathname}`;
-    }
-    return url.href;
-  } catch {
-    if (source && !/^([a-z]+:)?\/\//i.test(source) && !/^data:/i.test(source) && !source.startsWith('/')) {
-      try { return new URL(source, MEDIA).href; } catch {}
-    }
-    return source;
-  }
-};
 const mediaUrl = (path) => {
-  if (!path) return '';
-  if (/^data:/i.test(path)) return path;
-  if (/^(https?:)?\/\//i.test(path)) return normalizeMediaUrl(path);
-  if (String(path).startsWith('uploads/media/')) return `https://tps.schoolaxis.in/${String(path).replace(/^\/+/, '')}`;
-  if (String(path).startsWith('website/')) return `https://schoolaxis.in/${String(path).replace(/^\/+/, '')}`;
-  return `${MEDIA}${String(path).replace(/^\//, '')}`;
+  const source = String(path || '').toLowerCase();
+  if (/sport|athlet|field|event|play/.test(source)) return '/assets/school/sports-ground-wide.webp';
+  if (/lab|science/.test(source)) return '/assets/school/laboratory.webp';
+  return '/assets/school/classroom.webp';
 };
 const escapeHtml = (value = '') => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 const routeFor = (item) => {
@@ -59,14 +29,17 @@ const routeFor = (item) => {
   return slug === '/' ? '/' : `/page/${slug.replace(/^\//, '')}/`;
 };
 const safeLinkAttrs = (href) => /^https?:\/\//i.test(href) ? ' target="_blank" rel="noreferrer"' : '';
-const fallbackImageSrc = '/assets/school/BUILDING.webp';
-const fallbackImageMarkup = ` onerror="this.onerror=null;this.src='${fallbackImageSrc}'"`;
+const fallbackImageSrc = '/assets/school/classroom.webp';
+const fallbackImageMarkup = '';
 
 function bindImageFallbacks(container) {
   if (!container) return;
   for (const image of container.querySelectorAll('img')) {
     if (!image || image.dataset.fallbackBound === 'true') continue;
     image.dataset.fallbackBound = 'true';
+    if (image.getAttribute('src')?.startsWith('/assets/school/')) {
+      image.alt = `Representative CC0 stock image, not a photograph of the school: ${image.alt}`;
+    }
     const applyFallback = () => {
       if (image.dataset.fallbackApplied === 'true') return;
       image.dataset.fallbackApplied = 'true';
@@ -194,16 +167,15 @@ function renderHome(feeds) {
   const gallery = feeds.gallery || [];
   const photo = (image, alt, className = '') => image ? `<img class="${className}" src="${escapeHtml(mediaUrl(image))}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async"${fallbackImageMarkup}>` : '';
   appRoot.innerHTML = `
-    <section class="home-hero" aria-labelledby="home-title"><div class="hero-copy"><span class="hero-kicker">Takshashila Public School · Shahjahanpur</span><h1 id="home-title">A strong start.<br>Room to become.</h1><p>Thoughtful teaching, a lively campus and the confidence to take learning beyond the classroom.</p><div class="hero-actions"><a class="hero-primary" href="/page/admission-enquiry">Explore admissions <span aria-hidden="true">↗</span></a><a class="hero-secondary" href="/page/about-school">Get to know TPS</a></div></div><div class="hero-image"><img class="parallax-image" src="/assets/school/BUILDING.webp" alt="Takshashila Public School campus in Shahjahanpur" fetchpriority="high"><span class="hero-caption">Takshashila Public School · Shahjahanpur</span></div></section>
+    <section class="home-hero" aria-labelledby="home-title"><div class="hero-copy"><span class="hero-kicker">Independent website preview</span><h1 id="home-title">A strong start.<br>Room to become.</h1><p>Thoughtful teaching, a lively campus and the confidence to take learning beyond the classroom.</p><div class="hero-actions"><a class="hero-primary" href="/page/admission-enquiry">Explore admissions <span aria-hidden="true">↗</span></a><a class="hero-secondary" href="/page/about-school">About this preview</a></div></div><div class="hero-image"><img class="parallax-image" src="/assets/school/classroom.webp" alt="Representative CC0 stock image, not a photograph of the school: empty classroom" fetchpriority="high"><span class="hero-caption">Representative stock image · empty classroom</span></div></section>
     <div class="notice-strip"><div class="page-width notice-inner"><span class="notice-label">Admissions</span><span class="notice-copy">Enquiries are open. Speak with our school team about the admission process.</span><a class="notice-link" href="/page/admission-enquiry">Apply / enquire ↗</a></div></div>
     <section class="section page-width reveal">${sectionHeading('On campus', 'Learning happens everywhere', 'A glimpse of the people, activities and shared moments that shape school life.', '/page/gallery')}<div class="highlights-grid">${highlights.map((item) => `<article class="highlight-item">${photo(item.image, item.title)}<div class="highlight-copy"><h3>${escapeHtml(item.title || 'School life')}</h3><p>${escapeHtml(cleanText(item.body))}</p></div></article>`).join('')}</div></section>
     <section class="section updates-band"><div class="page-width updates-layout"><div class="updates-intro reveal">${sectionHeading('School bulletin', 'The latest from TPS', 'Updates, activities and announcements from our school community.', '/#directory')}</div><div class="news-list reveal">${news.map((item) => { const date = new Date(item.created_at || ''); const displayDate = Number.isNaN(date.getTime()) ? 'School update' : date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); return `<article class="news-row"><div class="news-thumb">${photo(item.image, item.title)}</div><div><p class="news-date">${escapeHtml(displayDate)}</p><h3>${escapeHtml(item.title || 'School update')}</h3><p>${escapeHtml(cleanText(item.body))}</p></div><span class="news-arrow" aria-hidden="true">↗</span></article>`; }).join('')}</div></div></section>
     ${stats.length ? `<section class="section-compact page-width reveal" aria-label="School at a glance"><div class="stats-row">${stats.map((item) => `<div class="stat-item"><span class="stat-value">${escapeHtml(cleanText(item.body))}</span><span class="stat-label">${escapeHtml(item.title)}</span></div>`).join('')}</div></section>` : ''}
-    <section class="school-life reveal"><div class="school-life-photo"><img class="parallax-image" src="${escapeHtml(mediaUrl(gallery[0]?.front_image || 'sports.png'))}" alt="Students taking part in school activities" loading="lazy"></div><div class="school-life-copy"><span class="section-label">The school experience</span><h2>Curiosity in class. Confidence beyond it.</h2><p>From a strong academic foundation to sport, music and student leadership, there is more than one way to find your stride.</p><a class="text-link" href="/page/mission">Our approach to learning <span aria-hidden="true">→</span></a></div></section>
+    <section class="school-life reveal"><div class="school-life-photo"><img class="parallax-image" src="${escapeHtml(mediaUrl(gallery[0]?.front_image || 'sports-ground-wide.webp'))}" alt="Representative CC0 stock image, not a photograph of the school: outdoor sports ground" loading="lazy"></div><div class="school-life-copy"><span class="section-label">The school experience</span><h2>Curiosity in class. Confidence beyond it.</h2><p>From a strong academic foundation to sport, music and student leadership, there is more than one way to find your stride.</p><a class="text-link" href="/page/mission">Our approach to learning <span aria-hidden="true">→</span></a></div></section>
     ${features.length ? `<section class="section page-width reveal">${sectionHeading('Space to learn', 'Campus facilities', 'The practical spaces that bring lessons, ideas and after-school interests to life.', '/page/meet-the-chairman')}<div class="features-grid">${features.map((item, index) => `<article class="feature-item"><span class="feature-number">${String(index + 1).padStart(2, '0')}</span><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(cleanText(item.body))}</p></article>`).join('')}</div></section>` : ''}
     ${events.length ? `<section class="section updates-band"><div class="page-width reveal">${sectionHeading('Calendar', 'Coming together', 'School events and moments to look forward to.')}<div class="events-grid">${events.map((item) => { const date = cleanText(item.body).match(/\d{1,2}\s+\w+\s+\d{4}/)?.[0] || 'School event'; return `<article class="event-item">${photo(item.image, item.title, 'event-image')}<div class="event-copy"><time>${escapeHtml(date)}</time><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(cleanText(item.body))}</p></div></article>`; }).join('')}</div></div></section>` : ''}
     ${gallery.length ? `<section class="section page-width reveal">${sectionHeading('In pictures', 'A look around school', 'Campus activities and shared celebrations.', '/page/gallery')}<div class="gallery-preview">${gallery.slice(0, 3).map((item) => `<a class="gallery-tile" href="/page/gallery" aria-label="Explore ${escapeHtml(item.name)} gallery">${photo(item.front_image, item.name)}<span>${escapeHtml(item.name)}</span></a>`).join('')}</div></section>` : ''}
-    <section class="section-compact page-width reveal"><div class="stats-row"><div class="stat-item"><span class="stat-value">Visit</span><span class="stat-label">Shahjahanpur (U.P.) – 242001</span></div><div class="stat-item"><span class="stat-value">Call</span><span class="stat-label"><a href="tel:+915842224555">05842-224555, 9335006888</a></span></div><div class="stat-item"><span class="stat-value">Find</span><span class="stat-label"><a href="/page/contact-us">Contact & directions</a></span></div><div class="stat-item"><span class="stat-value">Browse</span><span class="stat-label"><a href="#directory">All school pages</a></span></div></div></section>
     <section class="page-width section-compact reveal" id="directory">${sectionHeading('Information desk', 'School information', 'The full school directory: admissions, academics, student life and public information.')}<div class="directory-toolbar"><div class="directory-search"><label for="directory-filter">Search school pages</label><input id="directory-filter" type="search" placeholder="Try “results”, “fees” or “transport”" autocomplete="off"></div><span class="directory-count" id="directory-count" aria-live="polite"></span></div><div class="directory-list" id="directory-list"></div></section>`;
   bindImageFallbacks(appRoot);
   renderDirectory(feeds.menu || [], feeds.allMenu || []);
@@ -237,8 +209,7 @@ function fixCmsLinks(container) {
   if (!container) return;
   for (const image of container.querySelectorAll('img[src]')) {
     const raw = image.getAttribute('src');
-    const nextSource = mediaUrl(raw || '');
-    if (raw && nextSource) image.src = nextSource;
+    image.src = mediaUrl(raw || '');
     image.loading = 'lazy';
     image.decoding = 'async';
     image.onerror = () => {
@@ -253,10 +224,6 @@ function fixCmsLinks(container) {
   bindImageFallbacks(container);
   for (const anchor of container.querySelectorAll('a[href]')) {
     const raw = anchor.getAttribute('href');
-    const normalizedHref = raw ? normalizeMediaUrl(raw) : raw;
-    if (normalizedHref && normalizedHref !== raw && /^https?:\/\//i.test(normalizedHref)) {
-      anchor.href = normalizedHref;
-    }
     if (isSensitiveDestination(raw, anchor.textContent)) {
       anchor.href = DEMO_ACCESS_PATH;
       anchor.removeAttribute('target');
@@ -264,8 +231,11 @@ function fixCmsLinks(container) {
       anchor.setAttribute('aria-label', `${anchor.textContent.trim() || 'This action'} is disabled in this demo`);
       continue;
     }
-    if (!raw || raw.startsWith('#') || /^(mailto:|tel:)/i.test(raw)) continue;
-    if (/^(https?:)?\/\//i.test(raw) || /^javascript:/i.test(raw)) continue;
+    if (/^(?:https?:|\/\/|mailto:|tel:|javascript:)/i.test(raw || '')) {
+      anchor.replaceWith(document.createTextNode(anchor.textContent || ''));
+      continue;
+    }
+    if (!raw || raw.startsWith('#')) continue;
     if (/\.(pdf|docx?|xlsx?|pptx?|jpe?g|png|webp)(?:\?|$)/i.test(raw)) {
       anchor.href = new URL(raw, MEDIA).href;
       anchor.target = '_blank';
@@ -297,9 +267,15 @@ function renderDemoDocument(blocked = false) {
   const metadata = getPageMetadata({}, path);
   updateDocumentMetadata({}, path);
   const content = blocked
-    ? `<span class="demo-blocked-mark" aria-hidden="true">×</span><header class="demo-document-header"><span class="section-label">Demo restriction</span><h1>That action is unavailable here</h1><p>This is a static website preview. Sign-ups, account access, application submission and payments are disabled.</p></header><div class="demo-document-body"><h2>No information was submitted</h2><p>This preview does not create accounts, accept registrations, process payments, or send form data. No database or form endpoint is connected.</p><div class="demo-document-actions"><a href="${DEMO_INFORMATION_PATH}">Read the important demo notice</a><a href="https://takshashilapublicschool.in/" target="_blank" rel="noopener noreferrer">Visit the official school website ↗</a></div></div>`
-    : `<header class="demo-document-header"><span class="section-label">Important document · preview notice</span><h1>About this website</h1><p>This independent website is a visual preview for review. It was not made, operated or approved by Takshashila Public School.</p></header><div class="demo-document-body"><h2>Demo only</h2><p>The pages and content are a static, read-only snapshot prepared for demonstration. Content cannot be changed from this website.</p><h2>No accounts or transactions</h2><p>This preview has no sign-up, account creation, login, application submission, payment or checkout functionality. Sensitive actions are blocked and lead to a demo notice.</p><h2>No form or database</h2><p>There are no working forms, no connected database and no analytics or tracking service. The site does not collect or submit personal information.</p><h2>For accurate, current information</h2><p>This preview may be incomplete or out of date. Contact the school directly through its official website for verified information.</p><div class="demo-document-actions"><a href="https://takshashilapublicschool.in/" target="_blank" rel="noopener noreferrer">Visit takshashilapublicschool.in ↗</a><a href="/">Return to the preview</a></div><div class="demo-disclaimer-note">Independent preview only. Takshashila Public School has not made, approved or endorsed this website.</div></div>`;
-  appRoot.innerHTML = `<article class="demo-document" aria-labelledby="demo-title"><div id="demo-content">${content.replace('<h1>', '<h1 id="demo-title">')}</div></article>`;
+    ? `<span class="demo-blocked-mark" aria-hidden="true">×</span><header class="demo-document-header"><span class="section-label">Demo restriction</span><h1>That action is unavailable here</h1><p>This is a static website preview. Sign-ups, account access, application submission and payments are disabled.</p></header><div class="demo-document-body"><h2>No information was submitted</h2><p>This preview does not create accounts, accept registrations, process payments or send form data. No database or form endpoint is connected.</p><div class="demo-document-actions"><a href="${DEMO_INFORMATION_PATH}">Read the important demo notice</a></div></div>`
+    : `<header class="demo-document-header"><span class="section-label">Important document · preview notice</span><h1>About this website</h1><p>This independent website is a visual preview for review. It was not made, operated or approved by Takshashila Public School.</p></header><div class="demo-document-body"><h2>Demo only</h2><p>The pages and content are a static, read-only snapshot prepared for demonstration. Content cannot be changed from this website.</p><h2>No accounts or transactions</h2><p>This preview has no sign-up, account creation, login, application submission, payment or checkout functionality. Sensitive actions are blocked and lead to a demo notice.</p><h2>No form or database</h2><p>There are no working forms, no connected database and no analytics or tracking service. No personal data is requested or sent by the application.</p><h2>Hosting logs</h2><p>The hosting provider may process basic request and security logs, including network identifiers. Review its privacy terms and configure deployment accordingly.</p><p>Do not submit personal information through this demo. Independent preview only; Takshashila Public School has not made, approved or endorsed this website.</p><div class="demo-document-actions"><a href="/">Return to the preview</a></div></div>`;
+  const contentDocument = new DOMParser().parseFromString(content, 'text/html');
+  for (const anchor of contentDocument.querySelectorAll('a[href]')) {
+    const url = new URL(anchor.getAttribute('href'), location.origin);
+    if (url.origin !== location.origin) anchor.replaceWith(contentDocument.createTextNode(anchor.textContent || ''));
+  }
+  const safeContent = contentDocument.body.innerHTML.replace('<h1>', '<h1 id="demo-title">');
+  appRoot.innerHTML = `<article class="demo-document" aria-labelledby="demo-title"><div id="demo-content">${safeContent}</div></article>`;
   if (metadata.robots) document.querySelector('meta[name="robots"]').content = metadata.robots;
   else document.querySelector('meta[name="robots"]').content = 'index,follow,max-image-preview:large';
   navPanel.hidden = true;
@@ -382,7 +358,6 @@ async function renderCurrentRoute() {
 function setTheme(theme) {
   const next = theme === 'night' ? 'night' : 'day';
   document.documentElement.dataset.theme = next;
-  localStorage.setItem('tps-theme', next);
   document.querySelector('.theme-icon').textContent = next === 'night' ? '☼' : '☾';
   document.querySelector('.theme-word').textContent = next === 'night' ? 'Day' : 'Night';
   document.querySelector('.theme-toggle').setAttribute('aria-label', `Switch to ${next === 'night' ? 'day' : 'night'} theme`);
@@ -390,7 +365,7 @@ function setTheme(theme) {
 }
 
 document.querySelector('.theme-toggle').addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'night' ? 'day' : 'night'));
-setTheme(localStorage.getItem('tps-theme') || 'day');
+setTheme(document.documentElement.dataset.theme || 'day');
 document.querySelector('.menu-toggle').addEventListener('click', (event) => {
   const button = event.currentTarget;
   const open = button.getAttribute('aria-expanded') !== 'true';

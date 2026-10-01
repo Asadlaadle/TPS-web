@@ -1,12 +1,13 @@
-export const SITE_ORIGIN = 'https://takshashilapublicschool.in';
-export const SITE_NAME = 'Takshashila Public School';
+const buildEnvironment = typeof process === 'undefined' ? {} : process.env;
+export const SITE_ORIGIN = (buildEnvironment.SITE_URL || 'https://demo.example.invalid').replace(/\/+$/, '');
+export const SITE_NAME = 'Independent School Website Preview';
 export const DEMO_INFORMATION_PATH = '/demo-information/';
 export const DEMO_ACCESS_PATH = '/demo-access/';
 
 const DEMO_METADATA = {
   information: {
     title: 'Important Document: Demo Notice | Takshashila School Preview',
-    description: 'Important notice: this is an independent, static demo preview, not made by the school. It has no accounts, sign-ups, payments, data collection or database.',
+    description: 'Important notice: this independent static preview has no accounts, sign-ups, payments, forms, analytics or database. Its host may process basic request logs.',
   },
   blocked: {
     title: 'Demo Only: Action Unavailable | School Website Preview',
@@ -16,8 +17,8 @@ const DEMO_METADATA = {
 
 const PAGE_METADATA = {
   '/': {
-    title: 'Takshashila Public School | Shahjahanpur',
-    description: 'Explore Takshashila Public School in Shahjahanpur: admissions, academics, campus facilities, student life, school news and CBSE public disclosures.',
+    title: 'Independent School Website Preview',
+    description: 'Independent static preview with sample school content, no contact details, and illustrative CC0 stock imagery.',
   },
   'meet-the-director': {
     title: 'Vice Chairperson’s Message | Takshashila Public School',
@@ -133,7 +134,7 @@ const PAGE_METADATA = {
   },
   'contact-us': {
     title: 'Contact and Directions | Takshashila Public School',
-    description: 'Contact Takshashila Public School in Shahjahanpur, Uttar Pradesh. Find the school address and telephone numbers.',
+    description: 'Sample contact page for an independent school website preview. No phone number or personal contact details are published.',
   },
   'meet-the-chairman': {
     title: 'Campus Infrastructure | Takshashila Public School',
@@ -143,10 +144,10 @@ const PAGE_METADATA = {
 
 export function getPageMetadata(page = {}, slug = page.linkname || '/') {
   if (slug === 'demo-information') {
-    return { ...DEMO_METADATA.information, canonical: `${SITE_ORIGIN}${DEMO_INFORMATION_PATH}`, image: `${SITE_ORIGIN}/assets/school/BUILDING.webp`, type: 'website' };
+    return { ...DEMO_METADATA.information, canonical: `${SITE_ORIGIN}${DEMO_INFORMATION_PATH}`, image: `${SITE_ORIGIN}/assets/school/classroom.webp`, type: 'website' };
   }
   if (slug === 'demo-access') {
-    return { ...DEMO_METADATA.blocked, canonical: `${SITE_ORIGIN}${DEMO_ACCESS_PATH}`, image: `${SITE_ORIGIN}/assets/school/BUILDING.webp`, type: 'website', robots: 'noindex,nofollow' };
+    return { ...DEMO_METADATA.blocked, canonical: `${SITE_ORIGIN}${DEMO_ACCESS_PATH}`, image: `${SITE_ORIGIN}/assets/school/classroom.webp`, type: 'website', robots: 'noindex,nofollow' };
   }
   const metadata = PAGE_METADATA[slug] || PAGE_METADATA['/'];
   const canonicalPath = slug === '/' ? '/' : `/page/${encodeURIComponent(slug)}/`;
@@ -154,7 +155,7 @@ export function getPageMetadata(page = {}, slug = page.linkname || '/') {
     title: metadata.title,
     description: metadata.description,
     canonical: `${SITE_ORIGIN}${canonicalPath}`,
-    image: page.photo ? `https://tps.schoolaxis.in/uploads/media/${encodeURIComponent(page.photo)}` : `${SITE_ORIGIN}/assets/school/BUILDING.webp`,
+    image: `${SITE_ORIGIN}/assets/school/classroom.webp`,
     type: 'website',
   };
 }
